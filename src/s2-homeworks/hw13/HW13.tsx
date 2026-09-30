@@ -19,6 +19,7 @@ const HW13 = () => {
     const [text, setText] = useState('')
     const [info, setInfo] = useState('')
     const [image, setImage] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const send = (x?: boolean | null) => () => {
         const url =
@@ -30,19 +31,48 @@ const HW13 = () => {
         setImage('')
         setText('')
         setInfo('...loading')
+        setLoading(true);
 
         axios
             .post(url, {success: x})
             .then((res) => {
                 setCode('Код 200!')
                 setImage(success200)
-                // дописать
-
+                setLoading(false);
+                setInfo('...всё ок)\n' +
+                    'код 200 - обычно означает что скорее всего всё ок)')
             })
             .catch((e) => {
-                // дописать
-
-            })
+                if (x === undefined) {
+                    setImage(error400)
+                    setText('Ошибка 400!')
+                    setInfo('Ты не отправил success в body вообще!\n' +
+                        'ошибка 400 - обычно означает что скорее всего фронт отправил что-то не то на бэк!')
+                    return
+                }
+                
+                if (x === null) {
+                    setImage(errorUnknown)
+                    setText('Error!')
+                    setInfo('Network Error\n' +
+                        'AxiosError')
+                    return
+                }
+                
+                if (e.response?.status === 500) {
+                    setImage(error500)
+                    setText('Ошибка 500!')
+                    setInfo('эмитация ошибки на сервере\n' +
+                        'ошибка 500 - обычно означает что что-то сломалось на сервере, например база данных)')
+                    return
+                }
+                
+                setCode('Неизвестная ошибка!')
+                setImage(errorUnknown)
+                setText(e.message)
+            }).finally(() => {
+                setLoading(false)
+        })
     }
 
     return (
@@ -56,6 +86,7 @@ const HW13 = () => {
                         onClick={send(true)}
                         xType={'secondary'}
                         // дописать
+                        disabled={loading}
 
                     >
                         Send true
@@ -64,6 +95,8 @@ const HW13 = () => {
                         id={'hw13-send-false'}
                         onClick={send(false)}
                         xType={'secondary'}
+                        disabled={loading}
+                        
                         // дописать
 
                     >
@@ -73,6 +106,8 @@ const HW13 = () => {
                         id={'hw13-send-undefined'}
                         onClick={send(undefined)}
                         xType={'secondary'}
+                        disabled={loading}
+                        
                         // дописать
 
                     >
@@ -82,6 +117,7 @@ const HW13 = () => {
                         id={'hw13-send-null'}
                         onClick={send(null)} // имитация запроса на не корректный адрес
                         xType={'secondary'}
+                        disabled={loading}
                         // дописать
 
                     >
